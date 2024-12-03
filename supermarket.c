@@ -1,6 +1,6 @@
 /*                         超市商品管理系统
 数据包括：商品名称、商品编号、商品类别、进价、售价、库存数量、供应商等。
-功能包括：添加商品信息、查询商品详情、修改商品数据、删除商品记录、商品进货、商品销售、库存盘点、成本利润计算
+功能包括：添加商品信息、查询商品详情、修改商品数据、删除商品记录、商品进货、商品销售、库存盘点、成本利润计算,保存，
 
 添加商品信息功能：用于新商品的录入，确保系统数据库中的商品数据完整。
 
@@ -18,6 +18,7 @@
 #include<stdio.h>
 #include<stdlib.h>     //超市管理系统退出exit
 #include<string.h>     //查找商品编号
+#define GOODSNUMBER 100   //定义可存放商品数量
 //商品结构体定义
 typedef struct goods
 {
@@ -29,7 +30,7 @@ typedef struct goods
 	int  Leftnumbers; 	     //库存数量
 	char offercompany[50];   //供货商
 }goods;
-goods Goodsum[100];     //定义货架可以存放100件物品
+goods Goodsum[GOODSNUMBER];     //定义货架可以存放n件物品
 int goodscount=0;       //定义现在商品为0
 double AllMoney=0;
 //1.添加商品功能
@@ -153,9 +154,9 @@ void SellGoods()
 	system("cls");
 	char SellId[20];
 	int SellNumbers;
-	printf("请输入要进货的商品编号: \n");
+	printf("请输入要出售的商品编号: \n");
 	scanf("%s", SellId);
-	printf("请输入进货的商品数量：\n");
+	printf("请输入出售的商品数量：\n");
 	scanf("%d",&SellNumbers);
 	for (int i = 0; i < goodscount; i++)
 	{
@@ -189,8 +190,28 @@ void AskMoney()
 //主函数
 int main() 
 {
+	FILE *fp ,*fpwrite;
+	if ((fp= fopen("supermarket.txt", "r+"))== NULL)
+	{
+		printf("文件不能正常打开\n");
+		exit(0);
+	}
+	goodscount = 0;  // 先初始化商品数量为0，后续根据读取情况更新
+	while (fscanf(fp, "%s %s %s %f %f %d %s", Goodsum[goodscount].name, Goodsum[goodscount].id,
+		Goodsum[goodscount].category, &Goodsum[goodscount].inPrice,
+		&Goodsum[goodscount].outPrice, &Goodsum[goodscount].Leftnumbers,
+		Goodsum[goodscount].offercompany) == 7)//正确存储7个数据
+	{
+		goodscount++;
+		if (goodscount >= GOODSNUMBER)  // 防止数组越界，最多读取100条记录
+		{
+			break;
+		}
+	}
+	fclose(fp); 
 	int choice;
-	while (1) {
+	while (1) 
+	{
 		printf("超市商品管理系统\n");
 		printf("1. 添加商品信息\n");
 		printf("2. 查询商品详情\n");
@@ -247,6 +268,17 @@ int main()
 			system("cls");
 			break;
 		case 9:
+			if (fp!= NULL) 
+			{
+				fpwrite = fopen("supermarket.txt", "a");
+				for (int i = 0; i < goodscount; i++) 
+				{
+					fprintf(fp, "%s %s %s %f %f %d %s\n", Goodsum[i].name, Goodsum[i].id,
+						Goodsum[i].category, Goodsum[i].inPrice, Goodsum[i].outPrice,
+						Goodsum[i].Leftnumbers, Goodsum[i].offercompany);
+				}
+				fclose(fpwrite);
+			}
 			printf("感谢使用，程序退出!\n");
 			exit(0);
 		default:
